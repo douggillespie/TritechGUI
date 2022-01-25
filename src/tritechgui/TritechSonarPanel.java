@@ -16,12 +16,13 @@ import java.util.ArrayList;
 
 import javax.swing.JPanel;
 
+import tritechgemini.detect.BackgroundSub;
+import tritechgemini.detect.DetectedRegion;
+import tritechgemini.detect.RegionDetector;
 import tritechgemini.imagedata.FanImageData;
 import tritechgemini.imagedata.FanPicksFromData;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechgemini.imagedata.ImageFanMaker;
-import tritechgui.detect.DetectedRegion;
-import tritechgui.detect.RegionDetector;
 
 /**
  * Panel for displaying the actual sonar image(s)
