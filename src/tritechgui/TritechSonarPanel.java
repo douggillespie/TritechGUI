@@ -12,6 +12,7 @@ import java.awt.font.LineMetrics;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
+import java.util.ArrayList;
 
 import javax.swing.JPanel;
 
@@ -19,6 +20,8 @@ import tritechgemini.imagedata.FanImageData;
 import tritechgemini.imagedata.FanPicksFromData;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechgemini.imagedata.ImageFanMaker;
+import tritechgui.detect.DetectedRegion;
+import tritechgui.detect.RegionDetector;
 
 /**
  * Panel for displaying the actual sonar image(s)
@@ -47,7 +50,11 @@ public class TritechSonarPanel extends JPanel {
 
 	private int nRangeGrid = 4;
 
-	//	private BackgroundSub[] backgroundSub;
+	private BackgroundSub[] backgroundSub = new BackgroundSub[4];
+	
+	private ArrayList<DetectedRegion> detections[] = new ArrayList[4];
+	
+	private RegionDetector regionDetector;
 
 	transient public static final String deg="\u00B0";
 
@@ -57,6 +64,7 @@ public class TritechSonarPanel extends JPanel {
 		this.tritechDisplayPanel = tritechDisplayPanel;
 		//		backgroundSub = new BackgroundSub();
 		setToolTipText("Gemini image display");
+		regionDetector = new RegionDetector();
 //		setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 	}
 
@@ -205,6 +213,10 @@ public class TritechSonarPanel extends JPanel {
 		imageCoordinates[imageIndex].imageY2 = y2;
 		g2d.drawImage(image, x1, y1, x2, y2, 0, 0,
 				image.getWidth(), image.getHeight(), null);
+		
+		int xVertex = (x1+x2)/2;
+		int yVertex = (y1-1);
+		int rangePixels = Math.abs(y2-y1);
 
 		if (drawGrid ) {
 			g2d.setColor(gridColour);
@@ -213,14 +225,12 @@ public class TritechSonarPanel extends JPanel {
 			int nBear = bearingTable.length;
 			double bearRange = bearingTable[nBear-1] - bearingTable[0];
 			double bearStep = bearRange / (nBearingGrid-1);
-			int x0 = (x1+x2)/2;
-			int y0 = y1-1;
 			int len = y1-y2;
 			for (int i = 0; i < nBearingGrid; i++) {
 				double bear = bearingTable[0] + i*bearStep;
-				x1 = (int) (x0 + Math.sin(bear) * len);
-				y1 = (int) (y0 - Math.cos(bear) * len);
-				g2d.drawLine(x0, y0, x1, y1);
+				x1 = (int) (xVertex + Math.sin(bear) * len);
+				y1 = (int) (yVertex - Math.cos(bear) * len);
+				g2d.drawLine(xVertex, yVertex, x1, y1);
 			}
 
 			int a1d = (int) Math.toDegrees(bearingTable[0]);
@@ -231,11 +241,11 @@ public class TritechSonarPanel extends JPanel {
 				g2d.setColor(gridColour);
 				int r =(i+1) * len / nRangeGrid;
 				//				r = len;
-				x1 = x0-r;
-				y1 = y0-r;
+				int x = xVertex-r;
+				int y = yVertex-r;
 				int w = 2*r;
 				int h =  r*2;
-				g2d.drawArc(x1, y1, w, h, a1d+90, a2d-a1d);
+				g2d.drawArc(x, y, w, h, a1d+90, a2d-a1d);
 
 				AffineTransform currTrans = g2d.getTransform();
 				double d = (i+1) * fanData.getGeminiRecord().getMaxRange() / nRangeGrid;
@@ -253,17 +263,43 @@ public class TritechSonarPanel extends JPanel {
 
 				// this one calculates the position, then rotates about the position and
 				// draws just there. 
-				x1 = (int) (x0-r*Math.sin(rMostAngle));
-				y1 = (int) (y0-r*Math.cos(rMostAngle));
+				x = (int) (xVertex-r*Math.sin(rMostAngle));
+				y = (int) (yVertex-r*Math.cos(rMostAngle));
 				g2d.setTransform(AffineTransform.getRotateInstance(-rMostAngle, 
-						x1, y1));
+						x, y));
 				LineMetrics lm = fm.getLineMetrics(str, g2d);
-				g2d.drawString(str, x1, y1+lm.getAscent()/2-1);
+				g2d.drawString(str, x, y+lm.getAscent()/2-1);
 
 
 				g2d.setTransform(currTrans);
 			}
 		}
+		ArrayList<DetectedRegion> dets = detections[imageIndex];
+		if (dets != null) {
+			for (int i = 0; i < dets.size(); i++) {
+				DetectedRegion region = dets.get(i);
+				double a1 = region.getMinBearing();
+				double a2 = region.getMaxBearing(); 
+				double r1 = region.getMinRange();
+				double r2 = region.getMaxRange();
+				int[] xr = new int[4];
+				int[] yr = new int[4];
+				double rScale = 1./fanData.getMetresPerPixX();
+				rScale = rangePixels/fanData.getGeminiRecord().getMaxRange();
+				int x0 = (x1+x2)/2;
+				int y0 = y1-1;
+				xr[0] = (int) (xVertex-rScale*r1*Math.sin(a1));
+				xr[1] = (int) (xVertex-rScale*r2*Math.sin(a1));
+				xr[2] = (int) (xVertex-rScale*r2*Math.sin(a2));
+				xr[3] = (int) (xVertex-rScale*r1*Math.sin(a2));
+				yr[0] = (int) (yVertex-rScale*r1*Math.cos(a1));
+				yr[1] = (int) (yVertex-rScale*r2*Math.cos(a1));
+				yr[2] = (int) (yVertex-rScale*r2*Math.cos(a2));
+				yr[3] = (int) (yVertex-rScale*r1*Math.cos(a2));
+				g2d.drawPolygon(xr, yr, 4);
+			}
+		}
+		
 		// write info in the top left corner of the display. 
 		g2d.setColor(Color.BLACK);
 		int xt = imageCoordinates[imageIndex].imageX1;
@@ -302,8 +338,12 @@ public class TritechSonarPanel extends JPanel {
 				continue;
 			}
 			byte[] cleanData = record[i].getImageData();
-			//		cleanData = backgroundSub.removeBackground(cleanData, true);
+			if (backgroundSub[i] ==null) {
+				backgroundSub[i] = new BackgroundSub();
+			}
+			cleanData = backgroundSub[i].removeBackground(cleanData, true);
 			fanData[i] = fanMaker.createFanData(record[i], getWidth(), getHeight(), cleanData);
+			detections[i] = regionDetector.detectRegions(record[i], cleanData, 70, 30, 8);
 //			if (backgroundSub[i] != null && backgroundSub.getBackground() != null) {
 //				backgroundFan = fanMaker.createFanData(record, getWidth(), getHeight(), backgroundSub.getBackground());
 //			}
