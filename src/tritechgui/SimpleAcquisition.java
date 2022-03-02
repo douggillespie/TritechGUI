@@ -41,8 +41,7 @@ public class SimpleAcquisition {
 		err = svs5Commands.setConfiguration(rfConfig);
 		System.out.println("setConfiguration returned " + err);
 		
-		
-
+	
 //		SimulateADC simADC = new SimulateADC(true);
 //		err = svs5Commands.setConfiguration(simADC);
 //		System.out.println("Simulate returned " + err);
@@ -57,7 +56,7 @@ public class SimpleAcquisition {
 
 		GeminiRange range = new GeminiRange(2.);
 		err = svs5Commands.setConfiguration(range, 0);
-		err = svs5Commands.setConfiguration(range, 1);
+		err += svs5Commands.setConfiguration(range, 1);
 		System.out.println("setRange returned " + err);
 
 				
@@ -83,8 +82,9 @@ public class SimpleAcquisition {
 
 		@Override
 		public void setFrameRate(int framesPerSecond) {
-			GeminiRange range = new GeminiRange(0);
-			svs5Commands.getConfiguration(range.defaultCommand(), range, 853);
+//			GeminiRange range = new GeminiRange(0);
+//			svs5Commands.getConfiguration(range.defaultCommand(), range, 853);
+			System.out.println("Frame rate is " + framesPerSecond);
 		}
 
 		@Override

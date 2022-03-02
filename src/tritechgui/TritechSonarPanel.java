@@ -326,6 +326,7 @@ public class TritechSonarPanel extends JPanel {
 	public void setGeminiRecord(GeminiImageRecordI[] records) {
 		this.geminiRecord = records.clone();
 		this.makeImage(records);
+//		System.out.println("Repaint now");
 		repaint();
 	}
 
@@ -346,7 +347,7 @@ public class TritechSonarPanel extends JPanel {
 			if (backgroundSub[i] ==null) {
 				backgroundSub[i] = new BackgroundSub();
 			}
-//			cleanData = backgroundSub[i].removeBackground(cleanData, true);
+			cleanData = backgroundSub[i].removeBackground(cleanData, true);
 			newFanData[i] = fanMaker.createFanData(record[i], getWidth(), getHeight(), cleanData);
 			detections[i] = regionDetector.detectRegions(record[i], cleanData, 70, 30, 8);
 //			if (backgroundSub[i] != null && backgroundSub.getBackground() != null) {
