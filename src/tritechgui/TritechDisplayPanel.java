@@ -6,7 +6,9 @@ import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.TimeZone;
 
 import javax.swing.JFrame;
@@ -39,6 +41,8 @@ public class TritechDisplayPanel extends JPanel {
 	private DateFormat dateFormat;
 
 	private int[] sonarList;
+	
+	private HashMap<Integer, Integer> availableSonars = new HashMap();
 
 	public TritechDisplayPanel(TritechGUIControl tritechGUIControl, JFrame mainFrame) {
 		this.tritechGUIControl = tritechGUIControl;
@@ -106,6 +110,39 @@ public class TritechDisplayPanel extends JPanel {
 		}
 		showImages(images);
 	}
+	
+	public void showLiveImage(GeminiImageRecordI geminiImage) {
+		int sonarInd = getLiveSonarindex(geminiImage.getDeviceId());
+		this.geminiImage[sonarInd] = geminiImage;
+		showImages(this.geminiImage);
+	}
+	
+	public int getLiveSonarindex(int sonarId) {
+		int nSonar = checkLiveSonars(sonarId);
+		for(int i = 0; i < nSonar; i++) {
+			if (sonarList[i] == sonarId) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	private int checkLiveSonars(int sonarId) {
+		if (availableSonars.containsKey(sonarId)) {
+			return availableSonars.size();
+		}
+		availableSonars.put(sonarId, sonarId);
+		// need to add a sonar
+		if (sonarList == null) {
+			sonarList = new int[availableSonars.size()];
+			geminiImage = new GeminiImageRecordI[availableSonars.size()];
+		}
+		else {
+			sonarList = Arrays.copyOf(sonarList, availableSonars.size());
+			geminiImage = Arrays.copyOf(geminiImage, availableSonars.size());
+		}
+		sonarList[sonarList.length-1] = sonarId;
+		return availableSonars.size();
+	}
 
 	private void showImages(GeminiImageRecordI[] records) {
 		this.geminiImage = records;
@@ -126,10 +163,12 @@ public class TritechDisplayPanel extends JPanel {
 			infoStrip.setText(" ");
 			return;
 		}
+		if (anImage.getFilePath() != null) {
 		File f = new File(anImage.getFilePath());
 		String infoString = String.format(" %s, rec %d, %s, range %3.1fm", f.getName(), 
 				anImage.getRecordNumber(), formatTime(anImage.getRecordTime()), anImage.getMaxRange());
 		infoStrip.setText(infoString);
+		}
 	}
 	
 	public String formatTime(long time) {

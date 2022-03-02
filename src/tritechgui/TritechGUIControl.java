@@ -14,6 +14,8 @@ public class TritechGUIControl {
 	private TritechDisplayPanel tritechDisplayPanel;
 	
 	private MultiFileCatalog multiFileCatalog;
+	
+	private SimpleAcquisition simpleAcquisition; 
 
 	public TritechDisplayPanel getTritechDisplayPanel() {
 		return tritechDisplayPanel;
@@ -29,6 +31,11 @@ public class TritechGUIControl {
 		
 		tritechDisplayPanel = new TritechDisplayPanel(this, mainFrame);
 		
+	}
+
+	public void runAcquisition() {
+		simpleAcquisition = new SimpleAcquisition(this);
+		simpleAcquisition.start();
 	}
 
 }

@@ -16,7 +16,10 @@ public class TritechGUIMain {
 
 	public static void main(String[] args) {
 		
-		
+//		if (args == null || args.length == 0) {
+//			args = new String[1];
+//			args[0] = "C:\\ProjectData\\RobRiver\\log_2021-12-12-000518.glf";
+//		}
 		new TritechGUIMain().run(args);
 		
 		
@@ -41,6 +44,9 @@ public class TritechGUIMain {
 			String[] files = fileList.toArray(new String[fileList.size()]);
 			System.out.println(files);
 			tritechControl.getMultiFileCatalog().catalogFiles(files);
+		}
+		else {
+			tritechControl.runAcquisition();
 		}
 		
 	}

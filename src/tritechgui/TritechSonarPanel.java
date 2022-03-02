@@ -84,7 +84,9 @@ public class TritechSonarPanel extends JPanel {
 		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
 				RenderingHints.VALUE_TEXT_ANTIALIAS_ON); 
 		
-		
+		if (fanData == null) {
+			return;
+		}
 		if (imageCoordinates == null || imageCoordinates.length != fanData.length) {
 			imageCoordinates = new ImageCoordinates[fanData.length];
 			for (int i = 0; i < fanData.length; i++) {
@@ -179,7 +181,8 @@ public class TritechSonarPanel extends JPanel {
 
 	private void drawSonarImage(Graphics2D g2d, int imageIndex, FanImageData fanData, BufferedImage image, int dx1, int dy1, int dx2, int dy2) {
 
-		if (fanData == null) {
+		if (fanData == null || image == null) {
+			System.out.println("Null data for image index " + imageIndex);
 			return;
 		}
 		double imageWidM = image.getWidth() * fanData.getMetresPerPixX();
@@ -321,17 +324,18 @@ public class TritechSonarPanel extends JPanel {
 	 * @param records
 	 */
 	public void setGeminiRecord(GeminiImageRecordI[] records) {
-		this.geminiRecord = records;
+		this.geminiRecord = records.clone();
 		this.makeImage(records);
 		repaint();
 	}
 
 	private void makeImage(GeminiImageRecordI[] record) {
-		bufferedImage = new BufferedImage[record.length];
-		fanData = new FanImageData[record.length];
+//		bufferedImage = new BufferedImage[record.length];
+		FanImageData[] newFanData = new FanImageData[record.length];
+		BufferedImage[] newBufferedImages = new BufferedImage[record.length];
 		backgroundFan = new FanImageData[record.length];
 		if (record == null) {
-			bufferedImage = null;
+//			bufferedImage = null;
 			return;
 		}
 		for (int i = 0; i < record.length; i++) {
@@ -342,8 +346,8 @@ public class TritechSonarPanel extends JPanel {
 			if (backgroundSub[i] ==null) {
 				backgroundSub[i] = new BackgroundSub();
 			}
-			cleanData = backgroundSub[i].removeBackground(cleanData, true);
-			fanData[i] = fanMaker.createFanData(record[i], getWidth(), getHeight(), cleanData);
+//			cleanData = backgroundSub[i].removeBackground(cleanData, true);
+			newFanData[i] = fanMaker.createFanData(record[i], getWidth(), getHeight(), cleanData);
 			detections[i] = regionDetector.detectRegions(record[i], cleanData, 70, 30, 8);
 //			if (backgroundSub[i] != null && backgroundSub.getBackground() != null) {
 //				backgroundFan = fanMaker.createFanData(record, getWidth(), getHeight(), backgroundSub.getBackground());
@@ -351,18 +355,18 @@ public class TritechSonarPanel extends JPanel {
 //			else {
 //				backgroundFan = null;
 //			}
-			if (fanData == null) {
+			if (newFanData == null) {
 				return;
 			}
-			short[][] data = fanData[i].getImageValues();
+			short[][] data = newFanData[i].getImageValues();
 			if (data == null) {
 				return;
 			}
 			this.geminiRecord = record;
 			int nX = data.length;
 			int nY = data[0].length;
-			bufferedImage[i] = new BufferedImage(nX, nY, BufferedImage.TYPE_4BYTE_ABGR);
-			WritableRaster raster = bufferedImage[i].getRaster();
+			newBufferedImages[i] = new BufferedImage(nX, nY, BufferedImage.TYPE_4BYTE_ABGR);
+			WritableRaster raster = newBufferedImages[i].getRaster();
 			//		Color transParent = new Color(0,0,0,0);
 			//		Color pixCol = new Color(0,0,0,0);
 			int[] transparent = {0,0,0,0};
@@ -384,6 +388,8 @@ public class TritechSonarPanel extends JPanel {
 				}
 			}
 		}
+		fanData = newFanData;
+		bufferedImage = newBufferedImages;
 	}
 
 	/**
