@@ -327,7 +327,7 @@ public class TritechSonarPanel extends JPanel {
 		this.geminiRecord = records.clone();
 		this.makeImage(records);
 //		System.out.println("Repaint now");
-		repaint();
+		repaint(50);
 	}
 
 	private void makeImage(GeminiImageRecordI[] record) {

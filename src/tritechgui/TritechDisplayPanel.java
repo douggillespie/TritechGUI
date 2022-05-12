@@ -60,6 +60,7 @@ public class TritechDisplayPanel extends JPanel {
 		dataSlider.setValue(0);
 		infoStrip = new JLabel(" ");
 		mainFrame.add(infoStrip, BorderLayout.NORTH);
+		
 		tritechGUIControl.getMultiFileCatalog().addObserver(new CatObsever());
 	
 	}
